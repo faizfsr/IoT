@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IoT</title>
+<style>
+    body {
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #ffffff;
+        font-family: Arial, sans-serif;
+    }
+
+    .loader-container {
+        text-align: center;
+        animation: fade-in 1s ease-in-out;
+    }
+
+    .logo {
+        width: 150px;  
+        margin-bottom: 20px;
+        animation: pulse 1.5s infinite;
+    }
+
+    .loading-text {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        animation: blink 1.2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes blink {
+        0%,100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="loader-container">
+    <!-- GANTI logo.png ketika file sudah ada -->
+    <img src="c:\Users\ACER\Pictures\Screenshots\Screenshot 2025-12-03 144402.png" class="logo" alt="Logo">
+    <div class="loading-text">Loading...</div>
+</div>
+
+<script>
+    // Setelah 5 detik, pindah ke halaman utama
+    setTimeout(() => {
+        window.location.href = "halamanutama.html"; // nama halaman utama kamu
+    }, 3000);
+</script>
+
+</body>
+</html>
