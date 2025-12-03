@@ -1,70 +1,154 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>IoT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoring Paket & Kontrol Lampu</title>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
 <style>
     body {
         margin: 0;
+        font-family: Arial, sans-serif;
+        background: #eef2f3;
+        text-align: center;
+    }
+
+    /* LOADING SCREEN */
+    #loadingScreen {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: #fff;
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
-        background: #ffffff;
-        font-family: Arial, sans-serif;
+        flex-direction: column;
+        animation: fade-in 0.5s ease-in-out;
     }
-
-    .loader-container {
-        text-align: center;
-        animation: fade-in 1s ease-in-out;
-    }
-
     .logo {
-        width: 150px;  
+        width: 150px;
         margin-bottom: 20px;
         animation: pulse 1.5s infinite;
     }
-
     .loading-text {
         font-size: 20px;
         font-weight: bold;
-        color: #333;
         animation: blink 1.2s infinite;
     }
+    @keyframes pulse { 0%{transform:scale(1);}50%{transform:scale(1.1);}100%{transform:scale(1);} }
+    @keyframes blink {50%{opacity:0.3;}}
 
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.08); }
-        100% { transform: scale(1); }
+    /* DASHBOARD */
+    #dashboard {
+        display: none; /* awalnya hidden */
+        padding: 20px;
     }
-
-    @keyframes blink {
-        0%,100% { opacity: 1; }
-        50% { opacity: 0.4; }
+    .box {
+        background: #fff;
+        padding: 20px;
+        margin: 15px auto;
+        width: 300px;
+        border-radius: 12px;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+        font-size: 20px;
+        font-weight: bold;
     }
-
-    @keyframes fade-in {
-        from { opacity: 0; }
-        to { opacity: 1; }
+    button {
+        padding: 10px 20px;
+        border: none;
+        margin: 10px;
+        font-size: 18px;
+        border-radius: 10px;
+        cursor: pointer;
     }
+    .on { background: #32cd32; color: white; }
+    .off { background: #dc143c; color: white; }
+    .indicator {
+        padding: 10px;
+        border-radius: 8px;
+        min-width: 120px;
+        display: inline-block;
+        color: white;
+    }
+    .green { background: #28a745; }
+    .red { background: #dc3545; }
 </style>
 </head>
 
 <body>
 
-<div class="loader-container">
-    <!-- GANTI logo.png ketika file sudah ada -->
+<!-- LOADING -->
+<div id="loadingScreen">
     <img src="Screenshot 2025-12-03 144402.png" class="logo" alt="Logo">
     <div class="loading-text">Loading...</div>
 </div>
 
+<!-- DASHBOARD -->
+<div id="dashboard">
+<h1>Monitoring Paket & Kontrol Lampu</h1>
+
+<div class="box">
+    Paket: <span id="statusPaket" class="indicator red">Menunggu...</span>
+</div>
+
+<div class="box">
+    Status Lampu: <span id="statusLampu" class="indicator red">Menunggu...</span><br><br>
+    <button class="on" onclick="kirimPerintah('ON')">NYALAKAN</button>
+    <button class="off" onclick="kirimPerintah('OFF')">MATIKAN</button>
+</div>
+
+</div>
+
 <script>
-    // Setelah 5 detik, pindah ke halaman utama
-    setTimeout(() => {
-        window.location.href = "halamanutama.html"; // nama halaman utama kamu
-    }, 3000);
+// Tampilkan dashboard setelah loading selesai
+setTimeout(() => {
+    document.getElementById("loadingScreen").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+}, 3000);
+
+// ===== MQTT Koneksi =====
+const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt");
+
+client.on("connect", () => {
+    console.log("MQTT Terhubung");
+    client.subscribe("esp32/paket");
+    client.subscribe("esp32/status_lampu");
+});
+
+client.on("message", (topic, message) => {
+    const data = message.toString().toUpperCase();
+    console.log(topic, data);
+
+    if(topic === "esp32/paket"){
+        const el = document.getElementById("statusPaket");
+        if(data === "PAKET TERDETEKSI"){
+            el.innerText = "Ada Paket 📦";
+            el.className = "indicator green";
+        } else {
+            el.innerText = "Tidak Ada Paket";
+            el.className = "indicator red";
+        }
+    }
+
+    if(topic === "esp32/status_lampu"){
+        const lamp = document.getElementById("statusLampu");
+        if(data === "LAMPU HIDUP"){
+            lamp.innerText = "Nyala 💡";
+            lamp.className = "indicator green";
+        } else {
+            lamp.innerText = "Mati";
+            lamp.className = "indicator red";
+        }
+    }
+});
+
+// Kirim kontrol lampu
+function kirimPerintah(cmd){
+    client.publish("esp32/kontrol", cmd);
+}
 </script>
 
 </body>
 </html>
-
